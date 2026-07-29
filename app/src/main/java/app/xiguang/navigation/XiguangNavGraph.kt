@@ -17,13 +17,14 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Construction
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Subscriptions
+import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,8 +36,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -73,12 +76,12 @@ private enum class TopLevelDestination(
     TODAY(
         route = AppDestination.TODAY,
         labelRes = R.string.nav_today,
-        icon = Icons.Outlined.Home,
+        icon = Icons.Outlined.WbSunny,
     ),
     PROJECTS(
         route = AppDestination.PROJECTS,
         labelRes = R.string.nav_projects,
-        icon = Icons.Outlined.Subscriptions,
+        icon = Icons.Outlined.FolderOpen,
     ),
     COLLECTION(
         route = AppDestination.COLLECTION,
@@ -308,15 +311,16 @@ private fun XiguangBottomBar(
     selectedRoute: String?,
     onNavigate: (TopLevelDestination) -> Unit,
 ) {
-    Column {
+    Column(
+        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+    ) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outline)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
                 .navigationBarsPadding()
                 .selectableGroup()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
         ) {
             TopLevelDestination.entries.forEach { destination ->
@@ -346,7 +350,7 @@ private fun BottomDestination(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .width(64.dp)
+            .width(68.dp)
             .selectable(
                 selected = selected,
                 onClick = onClick,
@@ -355,17 +359,25 @@ private fun BottomDestination(
             .semantics {
                 contentDescription = label
             }
-            .padding(vertical = 4.dp),
+            .padding(bottom = 2.dp),
     ) {
+        Box(
+            modifier = Modifier
+                .width(30.dp)
+                .height(3.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(if (selected) color else Color.Transparent),
+        )
+        Spacer(modifier = Modifier.height(7.dp))
         Icon(
             imageVector = destination.icon,
             contentDescription = null,
             tint = color,
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(5.dp))
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.titleSmall,
             color = color,
             fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
         )
