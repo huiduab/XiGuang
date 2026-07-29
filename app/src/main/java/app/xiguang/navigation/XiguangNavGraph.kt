@@ -1,8 +1,9 @@
 package app.xiguang.navigation
 
 import androidx.annotation.StringRes
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,6 +48,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -66,7 +68,8 @@ import app.xiguang.projects.ProjectsRoute
 import app.xiguang.settings.SettingsRoute
 import app.xiguang.today.TodayRoute
 import app.xiguang.ui.theme.XiguangTheme
-import androidx.compose.foundation.isSystemInDarkTheme
+
+private const val NAVIGATION_ANIMATION_DURATION_MS = 200
 
 private enum class TopLevelDestination(
     val route: String,
@@ -128,40 +131,66 @@ private fun XiguangAppContent() {
             navController = navController,
             startDestination = AppDestination.COLLECTION,
             modifier = Modifier.padding(innerPadding),
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = { ExitTransition.None },
+            enterTransition = {
+                slideIntoContainer(
+                    towards = slideDirection(isPop = false),
+                    animationSpec = tween(NAVIGATION_ANIMATION_DURATION_MS),
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = slideDirection(isPop = false),
+                    animationSpec = tween(NAVIGATION_ANIMATION_DURATION_MS),
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = slideDirection(isPop = true),
+                    animationSpec = tween(NAVIGATION_ANIMATION_DURATION_MS),
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = slideDirection(isPop = true),
+                    animationSpec = tween(NAVIGATION_ANIMATION_DURATION_MS),
+                )
+            },
         ) {
             composable(AppDestination.TODAY) {
-                TodayRoute(
-                    onOpenCollection = { collectionId ->
-                        navController.navigate(AppDestination.collectionDetail(collectionId))
-                    },
-                )
+                NavigationDestination {
+                    TodayRoute(
+                        onOpenCollection = { collectionId ->
+                            navController.navigate(AppDestination.collectionDetail(collectionId))
+                        },
+                    )
+                }
             }
             composable(AppDestination.PROJECTS) {
-                ProjectsRoute()
+                NavigationDestination {
+                    ProjectsRoute()
+                }
             }
             composable(AppDestination.COLLECTION) {
-                CollectionRoute(
-                    onSearch = {
-                        navController.navigate(AppDestination.COLLECTION_SEARCH) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onOpenGroup = { group ->
-                        navController.navigate(
-                            AppDestination.collectionList(
-                                groupKey = group.key,
-                                title = group.title,
-                            ),
-                        )
-                    },
-                    onManageFolders = {
-                        navController.navigate(AppDestination.FOLDER_MANAGEMENT)
-                    },
-                )
+                NavigationDestination {
+                    CollectionRoute(
+                        onSearch = {
+                            navController.navigate(AppDestination.COLLECTION_SEARCH) {
+                                launchSingleTop = true
+                            }
+                        },
+                        onOpenGroup = { group ->
+                            navController.navigate(
+                                AppDestination.collectionList(
+                                    groupKey = group.key,
+                                    title = group.title,
+                                ),
+                            )
+                        },
+                        onManageFolders = {
+                            navController.navigate(AppDestination.FOLDER_MANAGEMENT)
+                        },
+                    )
+                }
             }
             composable(
                 route = AppDestination.COLLECTION_LIST,
@@ -169,58 +198,104 @@ private fun XiguangAppContent() {
                     navArgument("groupKey") { defaultValue = "" },
                     navArgument("title") { defaultValue = "" },
                 ),
-            ) { entry ->
-                CollectionListRoute(
-                    onBack = navController::popBackStack,
-                    onOpenCollection = { collectionId ->
-                        navController.navigate(AppDestination.collectionDetail(collectionId))
-                    },
-                )
+            ) {
+                NavigationDestination {
+                    CollectionListRoute(
+                        onBack = navController::popBackStack,
+                        onOpenCollection = { collectionId ->
+                            navController.navigate(AppDestination.collectionDetail(collectionId))
+                        },
+                    )
+                }
             }
             composable(AppDestination.COLLECTION_SEARCH) {
-                CollectionSearchRoute(
-                    onBack = navController::popBackStack,
-                    onOpenCollection = { collectionId ->
-                        navController.navigate(AppDestination.collectionDetail(collectionId))
-                    },
-                )
+                NavigationDestination {
+                    CollectionSearchRoute(
+                        onBack = navController::popBackStack,
+                        onOpenCollection = { collectionId ->
+                            navController.navigate(AppDestination.collectionDetail(collectionId))
+                        },
+                    )
+                }
             }
             composable(
                 route = AppDestination.COLLECTION_DETAIL,
                 arguments = listOf(navArgument("collectionId") { defaultValue = -1L }),
             ) {
-                CollectionDetailRoute(
-                    onBack = navController::popBackStack,
-                    onReadInApp = { collectionId ->
-                        navController.navigate(AppDestination.collectionReader(collectionId))
-                    },
-                    onEdit = { collectionId ->
-                        navController.navigate(AppDestination.collectionEdit(collectionId))
-                    },
-                )
+                NavigationDestination {
+                    CollectionDetailRoute(
+                        onBack = navController::popBackStack,
+                        onReadInApp = { collectionId ->
+                            navController.navigate(AppDestination.collectionReader(collectionId))
+                        },
+                        onEdit = { collectionId ->
+                            navController.navigate(AppDestination.collectionEdit(collectionId))
+                        },
+                    )
+                }
             }
             composable(
                 route = AppDestination.COLLECTION_READER,
                 arguments = listOf(navArgument("collectionId") { defaultValue = -1L }),
             ) {
-                CollectionReaderRoute(onBack = navController::popBackStack)
+                NavigationDestination {
+                    CollectionReaderRoute(onBack = navController::popBackStack)
+                }
             }
             composable(
                 route = AppDestination.COLLECTION_EDIT,
                 arguments = listOf(navArgument("collectionId") { defaultValue = -1L }),
             ) {
-                CollectionEditRoute(
-                    onBack = navController::popBackStack,
-                    onSaved = { navController.popBackStack() },
-                )
+                NavigationDestination {
+                    CollectionEditRoute(
+                        onBack = navController::popBackStack,
+                        onSaved = { navController.popBackStack() },
+                    )
+                }
             }
             composable(AppDestination.FOLDER_MANAGEMENT) {
-                FolderManagementRoute(onBack = navController::popBackStack)
+                NavigationDestination {
+                    FolderManagementRoute(onBack = navController::popBackStack)
+                }
             }
             composable(AppDestination.SETTINGS) {
-                SettingsRoute()
+                NavigationDestination {
+                    SettingsRoute()
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun NavigationDestination(content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+    ) {
+        content()
+    }
+}
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.slideDirection(
+    isPop: Boolean,
+): AnimatedContentTransitionScope.SlideDirection {
+    val initialIndex = TopLevelDestination.entries.indexOfFirst {
+        it.route == initialState.destination.route
+    }
+    val targetIndex = TopLevelDestination.entries.indexOfFirst {
+        it.route == targetState.destination.route
+    }
+    val movesTowardStart = if (initialIndex >= 0 && targetIndex >= 0 && initialIndex != targetIndex) {
+        targetIndex > initialIndex
+    } else {
+        !isPop
+    }
+    return if (movesTowardStart) {
+        AnimatedContentTransitionScope.SlideDirection.Start
+    } else {
+        AnimatedContentTransitionScope.SlideDirection.End
     }
 }
 
