@@ -1,0 +1,292 @@
+package app.xiguang.collection
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Subscriptions
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import app.xiguang.domain.model.GroupMode
+import app.xiguang.domain.model.Platform
+import app.xiguang.ui.theme.MineralBlue
+import app.xiguang.ui.theme.OxidizedCopper
+import app.xiguang.ui.theme.Plum
+import app.xiguang.ui.theme.Sage
+
+@Composable
+fun CollectionRoute(viewModel: CollectionViewModel = viewModel()) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    CollectionScreen(
+        state = state,
+        onToggleMode = viewModel::toggleMode,
+    )
+}
+
+@Composable
+private fun CollectionScreen(
+    state: CollectionUiState,
+    onToggleMode: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding(),
+    ) {
+        CollectionHeader(
+            state = state,
+            onToggleMode = onToggleMode,
+        )
+
+        if (state.isEmpty) {
+            EmptyCollection(modifier = Modifier.weight(1f))
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(state.groups, key = CollectionGroup::key) { group ->
+                    CollectionGroupRow(group)
+                }
+            }
+        }
+
+        XiguangBottomBar()
+    }
+}
+
+@Composable
+private fun CollectionHeader(
+    state: CollectionUiState,
+    onToggleMode: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 28.dp, end = 18.dp, top = 22.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "隙光",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = {}) {
+                Icon(
+                    imageVector = Icons.Outlined.Search,
+                    contentDescription = "搜索收藏",
+                )
+            }
+            IconButton(onClick = onToggleMode) {
+                Icon(
+                    imageVector = if (state.mode == GroupMode.FOLDER) {
+                        Icons.Outlined.FolderOpen
+                    } else {
+                        Icons.Outlined.Language
+                    },
+                    contentDescription = if (state.mode == GroupMode.FOLDER) {
+                        "当前按收藏夹分类，点击切换为平台分类"
+                    } else {
+                        "当前按平台分类，点击切换为收藏夹分类"
+                    },
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+
+        Text(
+            text = "收藏",
+            style = MaterialTheme.typography.displayLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(top = 22.dp, bottom = 8.dp),
+        )
+        Text(
+            text = if (state.mode == GroupMode.FOLDER) {
+                "按收藏夹分类 · ${state.totalCount} 条"
+            } else {
+                "按平台分类 · ${state.totalCount} 条"
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 24.dp),
+        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+    }
+}
+
+@Composable
+private fun CollectionGroupRow(group: CollectionGroup) {
+    val tint = platformColor(group.platform)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { }
+            .padding(
+                start = if (group.depth == 0) 28.dp else 64.dp,
+                end = 24.dp,
+                top = 19.dp,
+                bottom = 19.dp,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = if (group.platform == null) {
+                Icons.Outlined.FolderOpen
+            } else {
+                Icons.Outlined.Language
+            },
+            contentDescription = null,
+            tint = tint,
+        )
+        Spacer(modifier = Modifier.width(20.dp))
+        Text(
+            text = group.title,
+            style = if (group.depth == 0) {
+                MaterialTheme.typography.titleMedium
+            } else {
+                MaterialTheme.typography.bodyLarge
+            },
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = group.count.toString(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Icon(
+            imageVector = Icons.Outlined.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+    HorizontalDivider(
+        modifier = Modifier.padding(start = if (group.depth == 0) 28.dp else 64.dp),
+        color = MaterialTheme.colorScheme.outline,
+    )
+}
+
+@Composable
+private fun EmptyCollection(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 40.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Outlined.BookmarkBorder,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = "把值得留下的内容带回来",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(top = 18.dp),
+            )
+            Text(
+                text = "在 X、微博、小红书、抖音或浏览器中点击分享，然后选择“收藏到隙光”。",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 10.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun XiguangBottomBar() {
+    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .navigationBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceAround,
+    ) {
+        BottomDestination("今日", Icons.Outlined.Home, selected = false)
+        BottomDestination("项目", Icons.Outlined.Subscriptions, selected = false)
+        BottomDestination("收藏", Icons.Outlined.BookmarkBorder, selected = true)
+        BottomDestination("设置", Icons.Outlined.Settings, selected = false)
+    }
+}
+
+@Composable
+private fun BottomDestination(
+    label: String,
+    icon: ImageVector,
+    selected: Boolean,
+) {
+    val color = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .width(64.dp)
+            .clickable { }
+            .padding(vertical = 4.dp),
+    ) {
+        Icon(icon, contentDescription = label, tint = color)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = color,
+            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
+        )
+    }
+}
+
+@Composable
+private fun platformColor(platform: Platform?): Color = when (platform) {
+    Platform.X -> MineralBlue
+    Platform.WEIBO -> OxidizedCopper
+    Platform.XIAOHONGSHU -> Plum
+    Platform.DOUYIN -> MaterialTheme.colorScheme.onBackground
+    Platform.BILIBILI -> Plum
+    Platform.ZHIHU -> MineralBlue
+    Platform.YOUTUBE -> OxidizedCopper
+    Platform.BLOG -> Sage
+    Platform.OTHER, null -> MaterialTheme.colorScheme.primary
+}

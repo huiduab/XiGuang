@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="xiguang_background">#F3F0E9</color>
+    <color name="xiguang_surface">#EAE6DD</color>
+    <color name="xiguang_accent">#4E756D</color>
+    <color name="xiguang_ink">#202421</color>
+</resources>
