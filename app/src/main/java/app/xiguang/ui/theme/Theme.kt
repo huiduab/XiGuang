@@ -20,6 +20,10 @@ private val LightColors = lightColorScheme(
     outline = Hairline,
 )
 
+private val ColorDarkCopper = androidx.compose.ui.graphics.Color(0xFFE49B68)
+private val ColorDarkBlue = androidx.compose.ui.graphics.Color(0xFF87A9CA)
+private val ColorDarkSage = androidx.compose.ui.graphics.Color(0xFF9DB18D)
+
 private val DarkColors = darkColorScheme(
     primary = ColorDarkCopper,
     onPrimary = Graphite,
@@ -33,10 +37,6 @@ private val DarkColors = darkColorScheme(
     onSurfaceVariant = DarkMuted,
     outline = DarkHairline,
 )
-
-private val ColorDarkCopper = androidx.compose.ui.graphics.Color(0xFFE49B68)
-private val ColorDarkBlue = androidx.compose.ui.graphics.Color(0xFF87A9CA)
-private val ColorDarkSage = androidx.compose.ui.graphics.Color(0xFF9DB18D)
 
 @Composable
 fun XiguangTheme(
