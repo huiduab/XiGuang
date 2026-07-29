@@ -13,7 +13,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -21,10 +21,34 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(
+                providers.environmentVariable("XIGUANG_RELEASE_KEYSTORE_PATH")
+                    .orElse("missing-release-keystore.jks")
+                    .get(),
+            )
+            storePassword = providers.environmentVariable("XIGUANG_RELEASE_STORE_PASSWORD")
+                .orElse("")
+                .get()
+            keyAlias = providers.environmentVariable("XIGUANG_RELEASE_KEY_ALIAS")
+                .orElse("")
+                .get()
+            keyPassword = providers.environmentVariable("XIGUANG_RELEASE_KEY_PASSWORD")
+                .orElse("")
+                .get()
+        }
+    }
+
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -82,4 +106,32 @@ dependencies {
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+val releaseSigningEnvironment = listOf(
+    "XIGUANG_RELEASE_KEYSTORE_PATH",
+    "XIGUANG_RELEASE_STORE_PASSWORD",
+    "XIGUANG_RELEASE_KEY_ALIAS",
+    "XIGUANG_RELEASE_KEY_PASSWORD",
+)
+
+val verifyReleaseSigningEnvironment by tasks.registering {
+    group = "verification"
+    description = "Checks that the stable XiGuang release signing credentials are available."
+
+    doLast {
+        val missingVariables = releaseSigningEnvironment.filter { System.getenv(it).isNullOrBlank() }
+        check(missingVariables.isEmpty()) {
+            "Missing release signing environment variables: ${missingVariables.joinToString()}"
+        }
+
+        val keystorePath = System.getenv("XIGUANG_RELEASE_KEYSTORE_PATH")
+        check(file(keystorePath).isFile) {
+            "Release keystore does not exist: $keystorePath"
+        }
+    }
+}
+
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    dependsOn(verifyReleaseSigningEnvironment)
 }

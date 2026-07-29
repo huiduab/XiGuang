@@ -1,0 +1,93 @@
+name: Build Android Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Test and build signed Release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      XIGUANG_RELEASE_KEYSTORE_PATH: ${{ runner.temp }}/xiguang-release.jks
+      XIGUANG_RELEASE_STORE_PASSWORD: ${{ secrets.XIGUANG_RELEASE_STORE_PASSWORD }}
+      XIGUANG_RELEASE_KEY_ALIAS: ${{ secrets.XIGUANG_RELEASE_KEY_ALIAS }}
+      XIGUANG_RELEASE_KEY_PASSWORD: ${{ secrets.XIGUANG_RELEASE_KEY_PASSWORD }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: ""
+
+      - name: Install Android SDK components
+        shell: bash
+        run: |
+          sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
+
+      - name: Restore release keystore
+        shell: bash
+        env:
+          XIGUANG_RELEASE_KEYSTORE_BASE64: ${{ secrets.XIGUANG_RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$XIGUANG_RELEASE_KEYSTORE_BASE64"
+          printf '%s' "$XIGUANG_RELEASE_KEYSTORE_BASE64" | base64 --decode > "$XIGUANG_RELEASE_KEYSTORE_PATH"
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Test, lint, and build signed Release APK
+        run: ./gradlew testDebugUnitTest lintRelease assembleRelease --stacktrace
+
+      - name: Verify APK signature
+        shell: bash
+        run: |
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify \
+            --verbose \
+            --print-certs \
+            app/build/outputs/apk/release/app-release.apk
+
+      - name: Prepare release artifact
+        shell: bash
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk \
+            app/build/outputs/apk/release/xiguang-release-v1.0.0.apk
+
+      - name: Upload signed Release APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: xiguang-release-v1.0.0
+          path: app/build/outputs/apk/release/xiguang-release-v1.0.0.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload test and lint reports when available
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: xiguang-release-reports
+          path: |
+            app/build/reports/tests/
+            app/build/reports/lint-results-release.html
+            app/build/reports/problems/
+          if-no-files-found: ignore
+          retention-days: 14
