@@ -42,13 +42,13 @@ jobs:
       - name: Install Android SDK components
         shell: bash
         run: |
-          sdkmanager "platforms;android-36" "build-tools;35.0.0"
+          sdkmanager "platforms;android-37" "build-tools;36.0.0"
 
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Run unit tests and build APK
-        run: ./gradlew testDebugUnitTest assembleDebug --stacktrace
+      - name: Test, lint, and build APK
+        run: ./gradlew testDebugUnitTest lintDebug assembleDebug --stacktrace
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v7
