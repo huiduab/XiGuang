@@ -1,40 +1,34 @@
 # 隙光项目 Harness
 
-本文件是 `D:\aiBeginner\xiguang` 及其所有子目录的项目级协作规则。任何进入本仓库的编码代理都必须先阅读并遵守本文件；若子目录以后出现更具体的 `AGENTS.md`，以更具体规则为补充，但不得绕过本文件的“修改确认门禁”。
+本文件适用于仓库根目录及所有子目录。任何编码代理进入本项目后，必须先阅读并遵守本文件；若子目录存在更具体的 `AGENTS.md`，其规则作为补充，但不得绕过本文件的修改确认门禁。
 
 ## 1. 首要规则：修改确认门禁
 
-### 1.1 未确认前只能调查，不能写代码
+### 1.1 未确认前只能调查
 
-每一次代码修改都必须经过独立确认。收到需求后，先进行只读检查和需求澄清；在用户明确确认方案前，不得：
+收到需求后，先进行只读检查、复述目标和补齐信息。用户明确确认完整修改契约前，不得：
 
-- 新增、编辑、移动、重命名或删除源代码、测试、资源、Manifest、Gradle 配置、数据库 Schema、脚本等项目文件。
-- 运行会自动改写受版本控制文件的格式化、代码生成、依赖升级或迁移命令。
-- 顺手修复未纳入本次确认范围的问题。
-- 因为修改“很小”“显而易见”或“属于关联改动”而跳过确认。
+- 新增、编辑、移动、重命名或删除源代码、测试、资源、Manifest、Gradle 配置、数据库 Schema、脚本或其他项目文件。
+- 运行会改写受版本控制文件的格式化、代码生成、依赖升级或迁移命令。
+- 顺手修复未纳入本次契约的问题。
+- 因改动很小、显而易见或与目标相关而跳过确认。
 
-允许在确认前执行的操作仅限于：读取文件、搜索引用、检查目录、查看差异、运行不会改写项目文件的诊断命令，以及向用户提问。
+确认前允许读取文件、搜索引用、检查目录和差异、查看 Git 状态，以及运行不会改写受版本控制文件的诊断命令。
 
 ### 1.2 确认流程
 
-每次准备写代码时，必须按以下顺序执行：
+每次准备修改项目时必须：
 
-1. **复述目标**：用可验证的语言说明要改变的用户行为或技术结果。
-2. **补齐信息**：根据任务询问仍不明确的细节，至少覆盖适用项：
-   - 当前问题和期望行为；
-   - 修改范围与明确不做的内容；
-   - UI 状态、交互和文案；
-   - 数据结构、去重规则、兼容性和迁移要求；
-   - 异常、空状态、并发和离线行为；
-   - 验收标准与需要运行的测试。
-3. **提交修改契约**：列出拟修改/新增的文件、各文件职责、接口或数据结构变化、验证方式及主要风险。
-4. **等待明确确认**：只有用户明确回复“确认”“按这个方案修改”或表达同等清晰授权后，才可开始写入。
+1. **复述目标**：用可验证的语言说明要改变的用户行为、技术结果或文档结果。
+2. **补齐信息**：根据任务覆盖适用项，包括当前与期望行为、修改范围、明确不做的内容、UI 状态与文案、数据和兼容规则、异常/空状态/并发/离线行为、验收标准和测试。
+3. **提交修改契约**：列出拟修改或新增的文件、各文件职责、接口或数据结构变化、验证方式以及主要风险。
+4. **等待明确确认**：只有用户回复“确认”“按这个方案修改”或表达同等清晰授权后，才可写入。
 5. **按契约实施**：只修改已确认范围，并保持改动最小。
-6. **范围变化时重新确认**：实施中若发现必须增加文件、改变数据模型/接口、添加依赖、执行迁移或调整既定交互，立即暂停，说明原因并重新获得确认。
+6. **范围变化时重新确认**：若必须增加文件、改变数据模型或接口、添加依赖、执行迁移或改变既定交互，立即暂停并重新获得确认。
 
-沉默、模糊肯定、仅回答某个澄清问题，均不视为对完整修改契约的确认。一次确认只授权当次列明的范围，不自动延续到下一次代码修改。
+沉默、模糊肯定或只回答某个澄清问题不视为对完整契约的确认。一次确认只授权当次列明的范围。
 
-### 1.3 提交确认时使用的模板
+### 1.3 修改契约模板
 
 ```text
 我理解的目标：
@@ -56,52 +50,102 @@
 风险或取舍：
 - ...
 
-请确认上述范围；确认后我再修改代码。
+请确认上述范围；确认后我再修改。
 ```
 
-## 2. 项目现状
+## 2. 当前项目事实
+
+代码目录和构建配置是当前实现事实，`outputs/` 中的产品与技术文档是设计背景。两者不一致时必须指出差异，不得把规划内容当成已实现能力。
 
 ### 2.1 技术基线
 
 - 单模块 Android 应用：`:app`。
-- 包名：`app.xiguang`。
-- Kotlin 2.3.21，Java 17。
-- Android Gradle Plugin 8.13.2。
-- `minSdk 23`，`targetSdk 36`，`compileSdk 36`。
-- Jetpack Compose + Material 3。
+- 包名：`app.xiguang`；Debug 包名带 `.debug` 后缀。
+- Android Gradle Plugin 9.2.1。
+- Gradle Wrapper 9.4.1。
+- Kotlin 2.3.10，Java 17 字节码目标。
+- `minSdk 23`、`targetSdk 36`、`compileSdk 37`。
+- Jetpack Compose、Material 3、Navigation Compose。
 - Room 2.8.4、KSP、Coroutines、Flow。
-- 依赖由 `XiguangApplication` 手动组装，当前未引入依赖注入框架。
+- Preferences DataStore 负责设置持久化。
+- `XiguangApplication` 手动组装数据库、附件存储和仓库；未引入依赖注入框架。
+- 构建配置版本为 `1.0.0`（`versionCode = 1`）。
 
-详细产品与技术基线见 `outputs/隙光_Android技术设计文档_v2.0.md`。文档描述的是目标设计；代码目录才是当前实现事实。两者不一致时，应先向用户指出差异，不得擅自补齐。
-
-### 2.2 当前代码结构
+### 2.2 当前源码结构
 
 ```text
 app/src/main/java/app/xiguang/
-├── MainActivity.kt                 应用主入口，只负责装配主界面
-├── XiguangApplication.kt           数据库和仓库的应用级组装
-├── data/
-│   ├── local/
-│   │   ├── Entities.kt             Room 持久化模型
-│   │   ├── Daos.kt                 Room 数据访问接口
-│   │   └── XiguangDatabase.kt      Room 数据库
-│   └── repository/
-│       └── CollectionRepository.kt 收藏与文件夹数据协调
+├── MainActivity.kt
+├── XiguangApplication.kt
+├── navigation/
+│   ├── AppDestination.kt
+│   └── XiguangNavGraph.kt
 ├── domain/
-│   ├── model/
-│   │   └── CollectionModels.kt     领域枚举和分享载荷
+│   ├── model/CollectionModels.kt
 │   └── parser/
-│       ├── ShareIntentParser.kt    Android 分享 Intent 适配
-│       └── UrlTools.kt             URL 提取、规范化、平台识别
+│       ├── ShareIntentParser.kt
+│       └── UrlTools.kt
+├── data/
+│   ├── file/AttachmentStore.kt
+│   ├── local/
+│   │   ├── Entities.kt
+│   │   ├── Daos.kt
+│   │   └── XiguangDatabase.kt
+│   ├── preferences/SettingsRepository.kt
+│   └── repository/
+│       ├── CollectionRepository.kt
+│       └── ProjectRepository.kt
+├── share/
+│   ├── ShareReceiverActivity.kt
+│   └── ShareSaveScreen.kt
+├── collection/
+│   ├── CollectionScreen.kt
+│   ├── CollectionViewModel.kt
+│   ├── detail/
+│   ├── edit/
+│   ├── folder/
+│   ├── list/
+│   ├── reader/
+│   └── search/
+├── today/TodayScreen.kt
+├── projects/ProjectsScreen.kt
+├── settings/SettingsScreen.kt
 └── ui/
-    └── theme/                      Compose 颜色、字体和主题
+    ├── folder/FolderCreationDialogs.kt
+    └── theme/
 ```
 
-技术设计中规划了 `collection/` 和 `share/` 功能目录，但当前源码中尚不存在；`MainActivity` 与 `AndroidManifest.xml` 已引用其中的类型。不要把规划目录当作已实现代码，也不要在未确认时创建占位实现。
+测试已存在于：
 
-## 3. 架构边界与依赖方向
+```text
+app/src/test/          JVM 单元测试
+app/src/androidTest/   Compose、Navigation、WebView 和 Room Migration 仪器测试
+```
 
-项目第一阶段保持单 Gradle 模块，通过包边界实现低耦合，避免为了形式而过早拆分模块。
+### 2.3 已实现能力
+
+- 接收系统 `SEND` 的纯文本、HTML、图片和 PDF，以及 `SEND_MULTIPLE` 图片。
+- 提取、规范化 URL，移除 fragment 和常见追踪参数，并按规范化 URL 去重。
+- 识别 X、微博、小红书、抖音、B站、知乎、YouTube、博客和其他平台。
+- 将图片和文档附件复制到应用私有存储。
+- 分享保存页支持选择一级/二级收藏夹及快速新建一级收藏夹。
+- 收藏按收藏夹或平台分组；支持列表、详情、搜索、类型/阅读状态筛选。
+- 支持编辑标题和备注、移动、删除、已读/未读、多选批量操作。
+- 支持两级收藏夹的新建、重命名、同级排序和安全删除。
+- 链接可在应用内 WebView 或外部浏览器打开；图片和 PDF 交给系统应用查看。
+- 今日页展示今日新增、全部未读、阅读进度和避免连续重复的随机阅读。
+- 项目与来源支持创建、编辑、删除，并保留未归属来源。
+- 设置支持主题、默认打开方式、通知开关和本地收藏统计。
+
+### 2.4 数据现状
+
+- Room 数据库名：`xiguang.db`，当前版本为 3；KSP 已配置将 Schema 导出到 `app/schemas/`，但该目录当前尚不存在。
+- v1→v2 增加收藏已读状态；v2→v3 增加项目和来源。
+- 数据库实体包括收藏、收藏夹、项目和来源。
+- 设置通过 Preferences DataStore 存储。
+- 图片和 PDF 附件由 `LocalAttachmentStore` 保存到应用私有文件目录。
+
+## 3. 架构边界
 
 目标依赖方向：
 
@@ -110,181 +154,168 @@ Android 入口 / Compose UI
           ↓
 领域模型、规则与用例
           ↓
-仓库接口或仓库门面
+仓库门面
           ↓
-Room DAO / Entity / Database
+Room DAO / Entity / Database、DataStore、文件存储
 ```
 
-Android 分享输入属于边界适配器：
+分享输入是 Android 边界适配：
 
 ```text
-Intent → ShareIntentParser → SharedPayload → Repository → Room
+Intent → ShareIntentParser → SharedPayload → CollectionRepository → Room / AttachmentStore
 ```
 
 ### 3.1 `domain/model`
 
 - 保存稳定的业务语言、领域模型和值类型。
 - 不依赖 Android、Compose、Room、DAO、Activity 或 ViewModel。
-- 不把数据库字段、界面状态或序列化细节直接混入领域模型。
-- 新枚举值或字段会影响持久化、UI 或兼容性时，必须在修改契约中单独说明。
+- 新枚举或字段若影响持久化、UI 或兼容性，必须在修改契约中单独列出。
 
 ### 3.2 `domain/parser`
 
 - `UrlExtractor`、`UrlNormalizer`、`PlatformDetector` 保持纯 Kotlin、确定性和无副作用。
-- Android `Intent` 相关逻辑集中在 `ShareIntentParser`，不得向其他纯领域代码扩散。
-- URL 规则修改必须提供输入/输出示例和单元测试，尤其覆盖追踪参数、大小写、端口、末尾斜杠、fragment、无效 URL 和平台子域名。
-- 不在解析器中访问数据库、网络或 UI。
+- Android `Intent` 逻辑只放在 `ShareIntentParser`。
+- URL 规则修改必须给出输入/输出示例和 JVM 单元测试，覆盖追踪参数、大小写、端口、末尾斜杠、fragment、无效 URL 和平台子域名。
+- 解析器不得访问数据库、网络或 UI。
 
 ### 3.3 `data/local`
 
-- 只负责 Room 的 Entity、DAO、Database 和 Migration。
-- DAO 不包含 UI 状态或展示逻辑。
-- 数据库字段或约束变化必须同时说明版本升级、Migration、Schema 导出和回滚/兼容风险；不得使用破坏性迁移掩盖问题。
-- Entity 是持久化细节，不应成为新 UI API。
+- 只负责 Room Entity、DAO、Database 和 Migration。
+- 数据库字段或约束变化必须说明版本升级、Migration、Schema 导出及兼容风险。
+- 不得使用破坏性迁移掩盖问题。
+- Entity 属于持久化细节，不应成为新增 UI API。
 
-### 3.4 `data/repository`
+### 3.4 `data/file` 与 `data/preferences`
 
-- 仓库负责协调 DAO、数据映射、去重和保存事务，不负责渲染或 Android 生命周期。
-- UI/ViewModel 不得直接调用 DAO 或 Database。
-- 新代码优先向上暴露领域模型，而不是 `CollectionEntity`/`FolderEntity`。当前仓库直接暴露 Entity Flow 属于已有耦合债务；未经确认不要顺手重构，但也不要继续扩大该模式。
-- 时间、网络或文件系统等易变依赖应通过小接口或构造参数注入，避免隐藏的全局依赖。
-- 一个仓库方法应表达一个业务动作，不把互不相关的读写合并为“万能方法”。
+- 文件存储负责附件持久化和路径生命周期，不承载收藏业务决策。
+- DataStore 仓库只负责设置读写，不混入页面展示状态。
+- 文件 I/O 不得阻塞主线程；不得记录完整分享内容或私有文件路径。
 
-### 3.5 `collection` 与 `share`
+### 3.5 `data/repository`
 
-- 每个功能按“Route/Screen、ViewModel、UiState、UiEvent”组织，具体文件数服从实际复杂度，不创建无内容抽象。
-- `Route` 负责依赖获取和生命周期连接；`Screen` 尽量只接收状态与回调，便于预览和测试。
-- ViewModel 只依赖仓库/用例，不依赖 Activity、DAO 或具体 Compose 组件。
-- UI 状态使用不可变数据；事件单向流动，避免 Composable 直接改持久化数据。
-- 分享页面只消费解析结果和触发保存，不重复实现 URL/平台/去重规则。
+- 仓库协调 DAO、映射、去重、附件保存和业务写入，不负责 UI 或 Android 生命周期。
+- 新 API 优先暴露领域模型，不继续扩大 Entity Flow 的公开范围。
+- 时间、网络、文件系统等易变依赖应通过窄接口或构造参数注入。
+- 一个仓库方法表达一个业务动作，避免万能方法。
 
-### 3.6 `ui/theme`
+### 3.6 功能包与导航
 
-- 只包含可复用视觉 token、Material 主题和通用视觉基础。
-- 业务文案、收藏逻辑和特定页面状态不得放入主题包。
-- 页面需要的新颜色/字体优先复用现有 token；新增全局 token 必须说明复用场景。
+- 页面按 Route/Screen、ViewModel、UiState、事件组织，文件数量服从实际复杂度。
+- Route 负责依赖和生命周期连接；Screen 尽量只接收状态和回调。
+- ViewModel 不得直接依赖 DAO、Database 或具体 Compose 组件。
+- UI 状态保持不可变，事件单向流动。
+- 导航路由集中在 `navigation/`，页面不得自行拼接散落的路由协议。
 
-### 3.7 应用入口
+### 3.7 应用入口与主题
 
-- `MainActivity`、`ShareReceiverActivity` 和 `XiguangApplication` 保持轻量，只承担 Android 生命周期、导航入口和依赖组装。
-- 不把业务规则写入 Activity/Application。
-- 不新增无约束的全局单例或随处读取 Application 的 Service Locator。
-- 引入依赖注入框架属于架构级变化，必须单独确认，不能为单个功能顺带加入。
+- `MainActivity`、`ShareReceiverActivity`、`XiguangApplication` 保持轻量。
+- `ui/theme` 只保存可复用视觉 token 和主题基础。
+- 业务规则不放入 Activity、Application 或主题包。
+- 引入依赖注入框架属于架构级变化，必须单独确认。
 
-## 4. 低耦合实现原则
+## 4. 当前技术债务
 
-1. **依赖稳定抽象**：上层不认识 DAO、Room Entity 或具体 Android 存储实现。
-2. **单一职责**：解析、业务决策、持久化、状态管理和渲染分别归属各自边界。
-3. **最小公开面**：默认使用 `private`/`internal`；仅暴露调用方真正需要的接口和状态。
-4. **构造注入**：依赖从构造参数进入，不在方法内部临时创建数据库、仓库或调度器。
-5. **纯逻辑优先**：可从 Android 环境剥离的规则写成纯 Kotlin 函数，以便快速单测。
-6. **显式映射**：领域模型、持久化模型和 UI 模型各自独立时，使用清晰映射函数，不依赖隐式字段巧合。
-7. **避免万能类型**：不创建承担多个功能的 God ViewModel、God Repository、`Utils.kt` 或无边界的 `Manager`。
-8. **避免循环依赖**：功能包之间通过领域契约协作，不直接读取彼此内部状态。
-9. **控制改动半径**：优先局部扩展；跨层变更必须在修改契约中列出所有受影响层。
-10. **不过度抽象**：只有存在真实替换点、测试边界或多实现需求时才引入接口。
+以下是现状，不得未经确认顺手重构：
+
+- 多个 ViewModel 继承 `AndroidViewModel` 并通过 `XiguangApplication` 获取仓库，尚未形成独立构造注入边界。
+- `CollectionRepository.collections` 和 `folders` 仍公开 Room Entity Flow。
+- 部分页面将 ViewModel、UiState 和 Screen 集中在单个文件中，代码风格和格式并不完全统一。
+- `ShareSaveScreen` 仍有硬编码用户文案，未全部迁移到 string resources。
+- 构建配置版本为 1.0.0，但设置页“关于”文案仍显示 0.1.0。
+- 通知开关已持久化，但当前未看到通知调度或系统通知实现。
+- 项目与来源已支持本地管理，但当前未看到网络订阅、抓取或同步实现。
+- 仓库没有网络同步、账号体系或云端备份。
 
 ## 5. 不可破坏的业务规则
 
-除非用户明确确认改变产品规则，否则实现必须保持：
+除非用户明确确认改变产品规则：
 
-- 单条内容分享只创建收藏，不自动创建作者订阅。
-- 收藏夹、平台和内容类型是不同维度；切换分组视图不能改写数据。
+- 单条内容分享只创建收藏，不自动创建作者订阅或来源。
+- 收藏夹、平台、内容类型、项目与来源是不同维度，不因切换视图改写数据。
 - 平台以内容 URL 域名识别，分享来源 App 仅记录在 `shared_from_package`。
-- URL 规范化应移除 fragment 和常见追踪参数，同时保留决定内容身份的业务参数。
-- 同一规范化 URL 不创建第二条收藏；重复分享应更新允许变化的归属/时间并返回“已经收藏”语义。
+- URL 规范化移除 fragment 和常见追踪参数，同时保留决定内容身份的业务参数。
+- 同一规范化 URL 不创建第二条收藏；重复分享更新允许变化的归属/时间，并返回“已经收藏”语义。
 - 分享失败时尽可能保留原始文本或 URI。
+- 两级收藏夹是当前上限；非空收藏夹不得直接删除。
 - 不在日志中写入 Token、Cookie、完整分享原文或其他敏感内容。
 - 大文件、数据库和网络工作不得阻塞主线程。
 
 ## 6. 修改策略
 
-### 6.1 最小改动
-
 - 只修改解决已确认目标所必需的文件。
 - 不进行无关重命名、目录整理、全项目格式化、依赖升级或架构重写。
-- 遇到已有缺陷时先记录并告知；只有用户把它加入修改契约后才能修复。
-- 保留现有 API 和数据兼容性；若无法保留，必须在确认前说明迁移方案。
-
-### 6.2 新功能落点
-
-- 新业务概念先进入 `domain/model`。
-- 纯业务规则进入 `domain` 的窄职责文件。
-- 持久化实现进入 `data/local`，协调逻辑进入 `data/repository`。
-- 页面和状态进入对应功能包 `collection` 或 `share`。
-- Android 系统输入输出留在 Activity、Intent 适配器或其他平台边界。
-
-### 6.3 命名与代码风格
-
+- 已有缺陷先记录；只有纳入修改契约后才能修复。
+- 跨层变更必须列出所有受影响层。
+- 新业务概念先进入 `domain/model`；纯规则进入窄职责领域文件；持久化进入 `data/local`；协调进入仓库；UI 进入对应功能包。
 - 遵循 Kotlin 官方风格和现有尾逗号格式。
-- 类型/函数名称表达业务含义，避免 `Helper`、`Common`、`BaseManager` 等模糊名称。
-- Composable 使用名词命名；事件回调使用 `onXxx`；状态流名称清楚区分可变与只读。
-- 不以注释代替清晰结构；注释解释“为什么”，不复述代码“做什么”。
-- 用户可见文案放入 string resources，预览或测试专用文本除外。
+- 新用户文案放入 string resources。
+- 默认使用 `private`/`internal`，只公开调用方实际需要的表面。
+- 不创建 God ViewModel、God Repository、`Utils.kt` 或无边界的 `Manager`。
 
-## 7. 验证要求
+## 7. 隐私与仓库安全
 
-验证范围与风险成比例，并在修改契约中提前列出。
+- 文档、日志、示例和测试数据不得包含真实邮箱、手机号、住址、账号凭据、本机用户名或个人绝对路径。
+- 不得提交 `local.properties`、签名文件、私钥、Token、Cookie、`.env` 或 Secret 值。
+- GitHub Actions 只能引用 Secrets 的变量名，不能将值打印到日志。
+- 图片提交前检查 EXIF/GPS/作者/设备元数据及画面中的个人信息。
+- 示例路径使用仓库相对路径，示例凭据使用明显的占位符。
+- 修改 Git 作者身份、重写历史或强制推送属于独立且高风险的操作，必须另行确认。
 
-### 7.1 最低验证
+当前仓库的提交作者元数据包含一个 QQ 邮箱；这是已存在的 Git 历史隐私暴露。未经用户单独确认，不得重写历史。
 
-- 纯 Kotlin 规则：添加或更新 JVM 单元测试。
-- Repository/Room：覆盖成功、重复、空值、约束和 Migration；必要时使用仪器测试。
-- ViewModel：覆盖初始、加载、成功、空、错误和重复提交状态。
-- Compose UI：至少验证关键状态可渲染；重要交互增加 Compose UI 测试。
-- Manifest、资源或构建配置：运行对应 Gradle 编译/测试任务。
+## 8. 验证要求
 
-### 7.2 推荐命令
+验证范围应与风险成比例，并在修改契约中提前列出。
 
-在项目具备 Gradle Wrapper 后优先使用：
+- 纯 Kotlin 规则：JVM 单元测试。
+- Repository/Room：成功、重复、空值、约束和 Migration 测试。
+- ViewModel：初始、加载、成功、空、错误和重复提交状态。
+- Compose UI：关键状态可渲染；重要交互增加 Compose UI 测试。
+- Manifest、资源或构建配置：运行对应 Gradle 编译、测试和 Lint。
+
+常用命令：
 
 ```powershell
 .\gradlew.bat testDebugUnitTest
+.\gradlew.bat lintDebug
 .\gradlew.bat assembleDebug
 .\gradlew.bat connectedDebugAndroidTest
 ```
 
-当前仓库若没有 Wrapper、Android SDK 或可用设备，应如实报告未运行项，不能声称验证通过。不得为了让构建通过而在未确认范围内修改其他代码。
+Release 还需要四个签名环境变量：
 
-### 7.3 完成交付
+```text
+XIGUANG_RELEASE_KEYSTORE_PATH
+XIGUANG_RELEASE_STORE_PASSWORD
+XIGUANG_RELEASE_KEY_ALIAS
+XIGUANG_RELEASE_KEY_PASSWORD
+```
 
-每次实施后简明报告：
+当前工作机使用 Java 24，且没有 `local.properties`/完整 Android SDK。`gradlew --version` 可运行，但不能据此声称 Android 测试、Lint 或 APK 构建通过。云端工作流存在也不等于当前提交已经成功执行；必须以实际运行结果为准。
 
-- 实际修改了什么，以及与确认契约是否一致；
-- 运行了哪些检查及结果；
-- 哪些验证未运行及原因；
-- 已知限制、后续风险或需要用户决定的事项。
+## 9. 交付与变更记录
 
-### 7.4 强制记录每次代码修改
+每次实施后报告：
 
-每次完成已确认的代码修改后，必须在交付前向项目根目录的 `CODE_CHANGELOG.md` 追加一条记录。该步骤属于每次代码修改的固定收尾动作，无需再次单独申请文档写入确认。
+- 实际修改内容及是否与契约一致。
+- 已运行检查及结果。
+- 未运行验证及原因。
+- 已知限制和需要用户决定的事项。
 
-记录规则：
+每次完成已确认的代码修改后，交付前必须向根目录 `CODE_CHANGELOG.md` 追加一条记录。源代码、测试、资源、Manifest、Gradle 配置、数据库 Schema 和项目脚本均计为代码修改；纯调查、答疑或单独编辑说明文档不增加次数。
 
-- 一次经用户确认并连续实施的修改记为一次，不按文件数量拆分。
-- 只统计代码修改；仅调查、答疑或单独编辑说明文档不增加次数。
-- “代码修改”包括源代码、测试、资源、Manifest、Gradle 配置、数据库 Schema 和项目脚本的新增、编辑、移动或删除。
-- 次数为现有最大编号加一；首条代码修改记录为“第 1 次修改”。
-- 时间使用完成修改时的北京时间，格式为 `YYYY-MM-DD HH:mm`。
-- 每条记录只能占一行，并用一句话清楚说明实际改动及结果。
-- 记录只允许追加，不得删除、覆盖、重新编号或改写历史内容；发现历史错误时追加更正记录。
-- 即使测试失败或部分验证无法运行，只要代码已经写入，也必须记录，并在一句话中如实说明状态。
-- 写完后必须检查编号连续、时间存在、描述与实际差异一致，再向用户交付。
-
-固定格式：
+记录只能追加，编号为现有最大编号加一，使用北京时间：
 
 ```text
 - 第 N 次修改 | YYYY-MM-DD HH:mm（北京时间） | 一句话说明本次改了什么以及结果。
 ```
 
-## 8. 当前已知边界
+若测试失败或部分验证无法运行，只要代码已经写入仍须记录，并如实说明。写入后检查编号连续、时间存在且描述与实际差异一致。
 
-- 项目设计目标是单 Activity 主界面加独立分享接收 Activity。
-- `collection/CollectionRoute` 和 `share/ShareReceiverActivity` 当前被引用但源码缺失，构建前需要单独确认其实现范围。
-- 当前没有看到 `src/test` 或 `src/androidTest` 下的项目测试代码；新增测试应与具体功能修改一起确认。
-- 当前仓库根目录没有 Gradle Wrapper 文件；选择本机 Gradle、补充 Wrapper 或调整构建环境均需先说明并确认涉及的文件变化。
-- 代码或资源中若发现乱码、缺失资源或不一致引用，先作为调查结果报告，不得自动修复。
+## 10. 参考资料
 
----
-
-本 Harness 的目标是让每次改动都具备清楚的意图、有限的影响范围和可验证结果。确认门禁优先于效率：没有明确确认，就不写代码。
+- `README.md`：当前项目入口、功能、环境和构建说明。
+- `outputs/隙光_Android技术设计文档_v2.0.md`：目标技术设计，可能落后于源码。
+- `outputs/隙光_Android_APK总设计文档_v1.3.md`：产品和视觉背景，可能落后于源码。
+- `.github/workflows/android-apk.yml`：Debug 测试、Lint 和 APK 工作流。
+- `.github/workflows/android-release.yml`：签名 Release 工作流。
