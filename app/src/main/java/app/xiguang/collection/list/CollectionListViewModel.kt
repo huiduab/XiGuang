@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import app.xiguang.XiguangApplication
 import app.xiguang.domain.model.CollectionFilter
+import app.xiguang.domain.model.FolderMutationResult
 import app.xiguang.domain.model.FolderOption
 import app.xiguang.domain.model.Platform
 import app.xiguang.domain.model.SavedCollection
@@ -21,6 +22,7 @@ data class CollectionListUiState(
     val collections: List<SavedCollection> = emptyList(),
     val folders: List<FolderOption> = emptyList(),
     val selectedIds: Set<Long> = emptySet(),
+    val folderCreationError: FolderMutationResult? = null,
 ) {
     val isSelecting: Boolean get() = selectedIds.isNotEmpty()
 }
@@ -33,17 +35,20 @@ class CollectionListViewModel(
     private val title = savedStateHandle.get<String>("title").orEmpty()
     private val filter = parseFilter(savedStateHandle.get<String>("groupKey").orEmpty())
     private val selectedIds = MutableStateFlow<Set<Long>>(emptySet())
+    private val folderCreationError = MutableStateFlow<FolderMutationResult?>(null)
 
     val uiState = combine(
         repository.observeCollections(filter),
         repository.observeFolderOptions(),
         selectedIds,
-    ) { collections, folders, selection ->
+        folderCreationError,
+    ) { collections, folders, selection, creationError ->
         CollectionListUiState(
             title = title,
             collections = collections,
             folders = folders,
             selectedIds = selection.intersect(collections.mapTo(mutableSetOf(), SavedCollection::id)),
+            folderCreationError = creationError,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -63,6 +68,17 @@ class CollectionListViewModel(
 
     fun moveSelected(folderId: Long?) {
         applyToSelected { ids -> repository.moveCollections(ids, folderId) }
+    }
+
+    fun createRootFolder(name: String) {
+        viewModelScope.launch {
+            folderCreationError.value = repository.createFolder(name, parentId = null)
+                .takeUnless { it == FolderMutationResult.Success }
+        }
+    }
+
+    fun clearFolderCreationError() {
+        folderCreationError.value = null
     }
 
     fun setSelectedReadState(isRead: Boolean) {

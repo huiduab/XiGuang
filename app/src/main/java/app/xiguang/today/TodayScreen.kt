@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -47,20 +46,18 @@ import app.xiguang.R
 import app.xiguang.XiguangApplication
 import app.xiguang.domain.model.Platform
 import app.xiguang.domain.model.SavedCollection
-import app.xiguang.ui.theme.MineralBlue
-import app.xiguang.ui.theme.OxidizedCopper
-import app.xiguang.ui.theme.Plum
-import app.xiguang.ui.theme.Sage
+import app.xiguang.ui.theme.xiguangAccents
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.util.Calendar
+import kotlin.random.Random
 import kotlin.math.roundToInt
 
 data class TodayUiState(
+    val collections: List<SavedCollection> = emptyList(),
     val unread: List<SavedCollection> = emptyList(),
     val addedToday: List<SavedCollection> = emptyList(),
-    val random: SavedCollection? = null,
 ) {
     val todayReadCount: Int
         get() = addedToday.count(SavedCollection::isRead)
@@ -74,6 +71,7 @@ data class TodayUiState(
 
 class TodayViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = (application as XiguangApplication).collectionRepository
+    private var lastRandomCollectionId: Long? = null
 
     val uiState = repository.observeCollections()
         .map { items ->
@@ -84,9 +82,9 @@ class TodayViewModel(application: Application) : AndroidViewModel(application) {
                 set(Calendar.MILLISECOND, 0)
             }.timeInMillis
             TodayUiState(
+                collections = items,
                 unread = items.filterNot(SavedCollection::isRead),
                 addedToday = items.filter { it.createdAt >= start },
-                random = items.randomOrNull(),
             )
         }
         .stateIn(
@@ -94,6 +92,15 @@ class TodayViewModel(application: Application) : AndroidViewModel(application) {
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = TodayUiState(),
         )
+
+    fun randomCollectionId(): Long? {
+        val selected = selectRandomCollection(
+            collections = uiState.value.collections,
+            previousCollectionId = lastRandomCollectionId,
+        )
+        lastRandomCollectionId = selected?.id
+        return selected?.id
+    }
 }
 
 @Composable
@@ -105,6 +112,9 @@ fun TodayRoute(
     TodayScreen(
         state = state,
         onOpenCollection = onOpenCollection,
+        onRandomRead = {
+            viewModel.randomCollectionId()?.let(onOpenCollection)
+        },
     )
 }
 
@@ -112,6 +122,7 @@ fun TodayRoute(
 internal fun TodayScreen(
     state: TodayUiState,
     onOpenCollection: (Long) -> Unit,
+    onRandomRead: () -> Unit = {},
 ) {
     val todayAccent = MaterialTheme.colorScheme.secondary
     val unreadAccent = MaterialTheme.colorScheme.tertiary
@@ -119,15 +130,12 @@ internal fun TodayScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding(),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         item(key = "today-hero") {
             TodayHero(
                 state = state,
-                onRandomRead = state.random?.let { random ->
-                    { onOpenCollection(random.id) }
-                },
+                onRandomRead = onRandomRead.takeIf { state.collections.isNotEmpty() },
             )
         }
 
@@ -441,15 +449,28 @@ private fun TodayCompletion(
 
 @Composable
 private fun platformColor(platform: Platform): Color = when (platform) {
-    Platform.X -> MineralBlue
-    Platform.WEIBO -> OxidizedCopper
-    Platform.XIAOHONGSHU -> Plum
+    Platform.X -> MaterialTheme.xiguangAccents.mineralBlue
+    Platform.WEIBO -> MaterialTheme.xiguangAccents.oxidizedCopper
+    Platform.XIAOHONGSHU -> MaterialTheme.xiguangAccents.plum
     Platform.DOUYIN -> MaterialTheme.colorScheme.onBackground
-    Platform.BILIBILI -> Plum
-    Platform.ZHIHU -> MineralBlue
-    Platform.YOUTUBE -> OxidizedCopper
-    Platform.BLOG -> Sage
+    Platform.BILIBILI -> MaterialTheme.xiguangAccents.plum
+    Platform.ZHIHU -> MaterialTheme.xiguangAccents.mineralBlue
+    Platform.YOUTUBE -> MaterialTheme.xiguangAccents.oxidizedCopper
+    Platform.BLOG -> MaterialTheme.xiguangAccents.sage
     Platform.OTHER -> MaterialTheme.colorScheme.primary
+}
+
+internal fun selectRandomCollection(
+    collections: List<SavedCollection>,
+    previousCollectionId: Long?,
+    random: Random = Random.Default,
+): SavedCollection? {
+    val candidates = if (collections.size > 1) {
+        collections.filterNot { it.id == previousCollectionId }
+    } else {
+        collections
+    }
+    return candidates.randomOrNull(random)
 }
 
 private fun relativeTime(timestamp: Long): String = DateUtils.getRelativeTimeSpanString(

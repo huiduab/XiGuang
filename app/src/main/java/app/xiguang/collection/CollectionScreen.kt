@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,10 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.xiguang.domain.model.GroupMode
 import app.xiguang.domain.model.Platform
-import app.xiguang.ui.theme.MineralBlue
-import app.xiguang.ui.theme.OxidizedCopper
-import app.xiguang.ui.theme.Plum
-import app.xiguang.ui.theme.Sage
+import app.xiguang.ui.theme.xiguangAccents
 
 @Composable
 fun CollectionRoute(
@@ -69,8 +65,7 @@ private fun CollectionScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding(),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         CollectionHeader(
             state = state,
@@ -249,13 +244,13 @@ private fun EmptyCollection(modifier: Modifier = Modifier) {
 
 @Composable
 private fun platformColor(platform: Platform?): Color = when (platform) {
-    Platform.X -> MineralBlue
-    Platform.WEIBO -> OxidizedCopper
-    Platform.XIAOHONGSHU -> Plum
+    Platform.X -> MaterialTheme.xiguangAccents.mineralBlue
+    Platform.WEIBO -> MaterialTheme.xiguangAccents.oxidizedCopper
+    Platform.XIAOHONGSHU -> MaterialTheme.xiguangAccents.plum
     Platform.DOUYIN -> MaterialTheme.colorScheme.onBackground
-    Platform.BILIBILI -> Plum
-    Platform.ZHIHU -> MineralBlue
-    Platform.YOUTUBE -> OxidizedCopper
-    Platform.BLOG -> Sage
+    Platform.BILIBILI -> MaterialTheme.xiguangAccents.plum
+    Platform.ZHIHU -> MaterialTheme.xiguangAccents.mineralBlue
+    Platform.YOUTUBE -> MaterialTheme.xiguangAccents.oxidizedCopper
+    Platform.BLOG -> MaterialTheme.xiguangAccents.sage
     Platform.OTHER, null -> MaterialTheme.colorScheme.primary
 }

@@ -39,6 +39,7 @@
     <string name="move_action">&#x79FB;&#x52A8;</string>
     <string name="delete_action">&#x5220;&#x9664;</string>
     <string name="cancel_action">&#x53D6;&#x6D88;</string>
+    <string name="create_action">&#x521B;&#x5EFA;</string>
     <string name="unfiled">&#x672A;&#x6574;&#x7406;</string>
     <string name="move_to_folder_title">&#x79FB;&#x52A8;&#x81F3;&#x6536;&#x85CF;&#x5939;</string>
     <string name="delete_collections_title">&#x5220;&#x9664;&#x6536;&#x85CF;</string>

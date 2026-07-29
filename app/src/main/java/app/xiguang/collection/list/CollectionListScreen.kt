@@ -36,6 +36,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.xiguang.R
 import app.xiguang.domain.model.ContentType
 import app.xiguang.domain.model.SavedCollection
+import app.xiguang.ui.folder.FolderCreationErrorDialog
+import app.xiguang.ui.folder.NewRootFolderDialog
 import java.text.DateFormat
 import java.util.Date
 
@@ -53,6 +55,8 @@ fun CollectionListRoute(
         onToggleSelection = viewModel::toggleSelection,
         onClearSelection = viewModel::clearSelection,
         onMoveSelected = viewModel::moveSelected,
+        onCreateFolder = viewModel::createRootFolder,
+        onDismissFolderCreationError = viewModel::clearFolderCreationError,
         onSetSelectedReadState = viewModel::setSelectedReadState,
         onDeleteSelected = viewModel::deleteSelected,
     )
@@ -66,10 +70,13 @@ internal fun CollectionListScreen(
     onToggleSelection: (Long) -> Unit = {},
     onClearSelection: () -> Unit = {},
     onMoveSelected: (Long?) -> Unit = {},
+    onCreateFolder: (String) -> Unit = {},
+    onDismissFolderCreationError: () -> Unit = {},
     onSetSelectedReadState: (Boolean) -> Unit = {},
     onDeleteSelected: () -> Unit = {},
 ) {
     var showMoveDialog by remember { mutableStateOf(false) }
+    var showCreateFolder by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxSize()) {
         androidx.compose.foundation.layout.Row(
@@ -128,10 +135,33 @@ internal fun CollectionListScreen(
         FolderSelectionDialog(
             folders = state.folders,
             onDismiss = { showMoveDialog = false },
+            onCreate = {
+                showMoveDialog = false
+                showCreateFolder = true
+            },
             onSelect = { folderId ->
                 onMoveSelected(folderId)
                 showMoveDialog = false
             },
+        )
+    }
+    if (showCreateFolder) {
+        NewRootFolderDialog(
+            onDismiss = {
+                showCreateFolder = false
+                showMoveDialog = true
+            },
+            onConfirm = { name ->
+                onCreateFolder(name)
+                showCreateFolder = false
+                showMoveDialog = true
+            },
+        )
+    }
+    state.folderCreationError?.let { result ->
+        FolderCreationErrorDialog(
+            result = result,
+            onDismiss = onDismissFolderCreationError,
         )
     }
     if (showDeleteDialog) {
@@ -234,6 +264,7 @@ private fun CollectionListItem(
 private fun FolderSelectionDialog(
     folders: List<app.xiguang.domain.model.FolderOption>,
     onDismiss: () -> Unit,
+    onCreate: () -> Unit,
     onSelect: (Long?) -> Unit,
 ) {
     AlertDialog(
@@ -247,7 +278,16 @@ private fun FolderSelectionDialog(
                 }
             }
         },
-        confirmButton = {},
+        confirmButton = {
+            TextButton(onClick = onCreate) {
+                Text(stringResource(R.string.folder_add_root))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel_action))
+            }
+        },
     )
 }
 

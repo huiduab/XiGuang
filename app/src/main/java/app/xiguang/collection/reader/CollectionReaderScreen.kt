@@ -1,6 +1,9 @@
 package app.xiguang.collection.reader
 
 import android.annotation.SuppressLint
+import android.os.Build
+import android.webkit.CookieManager
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Column
@@ -101,16 +104,37 @@ private fun WebContent(url: String) {
     val context = LocalContext.current
     val webView = remember {
         WebView(context).apply {
-            settings.javaScriptEnabled = false
+            configureForReading()
             webViewClient = WebViewClient()
         }
     }
     DisposableEffect(webView) {
-        onDispose { webView.destroy() }
+        onDispose {
+            CookieManager.getInstance().flush()
+            webView.destroy()
+        }
     }
     AndroidView(
         factory = { webView },
         modifier = Modifier.fillMaxSize(),
         update = { view -> if (view.url != url) view.loadUrl(url) },
     )
+}
+
+@SuppressLint("SetJavaScriptEnabled")
+internal fun WebView.configureForReading() {
+    settings.apply {
+        javaScriptEnabled = true
+        domStorageEnabled = true
+        allowFileAccess = false
+        allowContentAccess = false
+        mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            safeBrowsingEnabled = true
+        }
+    }
+    CookieManager.getInstance().apply {
+        setAcceptCookie(true)
+        setAcceptThirdPartyCookies(this@configureForReading, true)
+    }
 }

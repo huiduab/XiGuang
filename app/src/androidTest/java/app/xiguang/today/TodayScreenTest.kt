@@ -45,10 +45,11 @@ class TodayScreenTest {
             XiguangTheme {
                 TodayScreen(
                     state = TodayUiState(
+                        collections = listOf(listed, random),
                         addedToday = listOf(listed),
-                        random = random,
                     ),
                     onOpenCollection = { openedId = it },
+                    onRandomRead = { openedId = random.id },
                 )
             }
         }

@@ -28,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,16 +39,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.xiguang.data.local.FolderEntity
+import app.xiguang.domain.model.FolderMutationResult
 import app.xiguang.domain.model.SharedPayload
+import app.xiguang.ui.folder.FolderCreationErrorDialog
+import app.xiguang.ui.folder.NewRootFolderDialog
 
 @Composable
 fun ShareSaveScreen(
     payload: SharedPayload,
     folders: List<FolderEntity>,
+    folderCreationError: FolderMutationResult?,
     onCancel: () -> Unit,
+    onCreateFolder: (String) -> Unit,
+    onDismissFolderCreationError: () -> Unit,
     onSave: (Long?) -> Unit,
 ) {
     var selectedFolderId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var showCreateFolder by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -116,12 +124,22 @@ fun ShareSaveScreen(
             modifier = Modifier.padding(top = 24.dp),
             color = MaterialTheme.colorScheme.outline,
         )
-        Text(
-            text = "保存到",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp),
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 28.dp, end = 16.dp, top = 6.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "保存到",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = { showCreateFolder = true }) {
+                Text(text = androidx.compose.ui.res.stringResource(app.xiguang.R.string.folder_add_root))
+            }
+        }
 
         LazyColumn(modifier = Modifier.weight(1f)) {
             item {
@@ -157,6 +175,21 @@ fun ShareSaveScreen(
             Spacer(modifier = Modifier.width(8.dp))
             Text("保存到收藏")
         }
+    }
+    if (showCreateFolder) {
+        NewRootFolderDialog(
+            onDismiss = { showCreateFolder = false },
+            onConfirm = { name ->
+                onCreateFolder(name)
+                showCreateFolder = false
+            },
+        )
+    }
+    folderCreationError?.let { result ->
+        FolderCreationErrorDialog(
+            result = result,
+            onDismiss = onDismissFolderCreationError,
+        )
     }
 }
 

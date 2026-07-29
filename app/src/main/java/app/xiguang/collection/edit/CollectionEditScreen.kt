@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.xiguang.R
 import app.xiguang.domain.model.FolderOption
+import app.xiguang.ui.folder.FolderCreationErrorDialog
+import app.xiguang.ui.folder.NewRootFolderDialog
 
 @Composable
 fun CollectionEditRoute(
@@ -45,6 +47,8 @@ fun CollectionEditRoute(
         onTitleChange = viewModel::updateTitle,
         onNoteChange = viewModel::updateNote,
         onFolderChange = viewModel::updateFolder,
+        onCreateFolder = viewModel::createRootFolder,
+        onDismissFolderCreationError = viewModel::clearFolderCreationError,
         onSave = { viewModel.save(onSaved) },
     )
 }
@@ -56,9 +60,12 @@ private fun CollectionEditScreen(
     onTitleChange: (String) -> Unit,
     onNoteChange: (String) -> Unit,
     onFolderChange: (Long?) -> Unit,
+    onCreateFolder: (String) -> Unit,
+    onDismissFolderCreationError: () -> Unit,
     onSave: () -> Unit,
 ) {
     var showFolders by remember { mutableStateOf(false) }
+    var showCreateFolder by remember { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
@@ -105,10 +112,33 @@ private fun CollectionEditScreen(
         EditFolderDialog(
             folders = state.folders,
             onDismiss = { showFolders = false },
+            onCreate = {
+                showFolders = false
+                showCreateFolder = true
+            },
             onSelect = { folderId ->
                 onFolderChange(folderId)
                 showFolders = false
             },
+        )
+    }
+    if (showCreateFolder) {
+        NewRootFolderDialog(
+            onDismiss = {
+                showCreateFolder = false
+                showFolders = true
+            },
+            onConfirm = { name ->
+                onCreateFolder(name)
+                showCreateFolder = false
+                showFolders = true
+            },
+        )
+    }
+    state.folderCreationError?.let { result ->
+        FolderCreationErrorDialog(
+            result = result,
+            onDismiss = onDismissFolderCreationError,
         )
     }
 }
@@ -117,6 +147,7 @@ private fun CollectionEditScreen(
 private fun EditFolderDialog(
     folders: List<FolderOption>,
     onDismiss: () -> Unit,
+    onCreate: () -> Unit,
     onSelect: (Long?) -> Unit,
 ) {
     AlertDialog(
@@ -130,6 +161,15 @@ private fun EditFolderDialog(
                 }
             }
         },
-        confirmButton = {},
+        confirmButton = {
+            TextButton(onClick = onCreate) {
+                Text(stringResource(R.string.folder_add_root))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel_action))
+            }
+        },
     )
 }

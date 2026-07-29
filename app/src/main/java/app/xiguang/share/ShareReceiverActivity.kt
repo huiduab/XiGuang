@@ -5,10 +5,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import app.xiguang.XiguangApplication
 import app.xiguang.data.repository.SaveResult
+import app.xiguang.domain.model.FolderMutationResult
 import app.xiguang.domain.parser.ShareIntentParser
 import app.xiguang.ui.theme.XiguangTheme
 import kotlinx.coroutines.launch
@@ -32,11 +37,20 @@ class ShareReceiverActivity : ComponentActivity() {
 
         setContent {
             val folders = repository.folders.collectAsStateWithLifecycle(emptyList()).value
+            var folderCreationError by remember { mutableStateOf<FolderMutationResult?>(null) }
             XiguangTheme {
                 ShareSaveScreen(
                     payload = payload,
                     folders = folders,
+                    folderCreationError = folderCreationError,
                     onCancel = ::finish,
+                    onCreateFolder = { name ->
+                        lifecycleScope.launch {
+                            folderCreationError = repository.createFolder(name, parentId = null)
+                                .takeUnless { it == FolderMutationResult.Success }
+                        }
+                    },
+                    onDismissFolderCreationError = { folderCreationError = null },
                     onSave = { folderId ->
                         lifecycleScope.launch {
                             val result = repository.save(payload, folderId)

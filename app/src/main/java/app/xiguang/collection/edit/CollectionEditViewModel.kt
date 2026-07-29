@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import app.xiguang.XiguangApplication
 import app.xiguang.domain.model.CollectionEditInput
+import app.xiguang.domain.model.FolderMutationResult
 import app.xiguang.domain.model.FolderOption
 import app.xiguang.domain.model.SavedCollection
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ data class CollectionEditUiState(
     val title: String = "",
     val note: String = "",
     val folderId: Long? = null,
+    val folderCreationError: FolderMutationResult? = null,
 )
 
 private data class CollectionEditDraft(
@@ -36,12 +38,14 @@ class CollectionEditViewModel(
     private val repository = (application as XiguangApplication).collectionRepository
     private val collectionId = savedStateHandle.get<Long>("collectionId") ?: -1L
     private val draft = MutableStateFlow<CollectionEditDraft?>(null)
+    private val folderCreationError = MutableStateFlow<FolderMutationResult?>(null)
 
     val uiState = combine(
         repository.observeCollection(collectionId),
         repository.observeFolderOptions(),
         draft,
-    ) { collection, folders, currentDraft ->
+        folderCreationError,
+    ) { collection, folders, currentDraft, creationError ->
         val effectiveDraft = currentDraft?.takeIf { it.collectionId == collection?.id }
         if (effectiveDraft == null) {
             CollectionEditUiState(
@@ -50,6 +54,7 @@ class CollectionEditViewModel(
                 title = collection?.title.orEmpty(),
                 note = collection?.note.orEmpty(),
                 folderId = collection?.folderId,
+                folderCreationError = creationError,
             )
         } else {
             CollectionEditUiState(
@@ -58,6 +63,7 @@ class CollectionEditViewModel(
                 title = effectiveDraft.title,
                 note = effectiveDraft.note,
                 folderId = effectiveDraft.folderId,
+                folderCreationError = creationError,
             )
         }
     }.stateIn(
@@ -71,6 +77,17 @@ class CollectionEditViewModel(
     fun updateNote(value: String) = updateDraft { it.copy(note = value) }
 
     fun updateFolder(folderId: Long?) = updateDraft { it.copy(folderId = folderId) }
+
+    fun createRootFolder(name: String) {
+        viewModelScope.launch {
+            folderCreationError.value = repository.createFolder(name, parentId = null)
+                .takeUnless { it == FolderMutationResult.Success }
+        }
+    }
+
+    fun clearFolderCreationError() {
+        folderCreationError.value = null
+    }
 
     fun save(onSaved: () -> Unit) {
         val current = uiState.value
