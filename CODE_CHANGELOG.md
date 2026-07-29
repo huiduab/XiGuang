@@ -11,3 +11,4 @@
 当前尚无代码修改记录；下一次代码修改从“第 1 次修改”开始。
 
 - 第 1 次修改 | 2026-07-29 12:12（北京时间） | 建立原生 Android 收藏与分享闭环、接入正式视觉和图标、补齐 Gradle Wrapper及 GitHub Actions 云端 Debug APK 构建；资源静态校验通过，本地完整编译因缺少兼容 JDK 17 与 Android SDK 未完成。
+- 第 2 次修改 | 2026-07-29 12:45（北京时间） | 为 GitHub Actions 增加 Android SDK 初始化步骤，使 sdkmanager 可用于安装编译平台与构建工具，准备重新验证云端 APK 构建。
