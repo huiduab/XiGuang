@@ -13,3 +13,4 @@
 - 第 1 次修改 | 2026-07-29 12:12（北京时间） | 建立原生 Android 收藏与分享闭环、接入正式视觉和图标、补齐 Gradle Wrapper及 GitHub Actions 云端 Debug APK 构建；资源静态校验通过，本地完整编译因缺少兼容 JDK 17 与 Android SDK 未完成。
 - 第 2 次修改 | 2026-07-29 12:45（北京时间） | 为 GitHub Actions 增加 Android SDK 初始化步骤，使 sdkmanager 可用于安装编译平台与构建工具，准备重新验证云端 APK 构建。
 - 第 3 次修改 | 2026-07-29 13:00（北京时间） | 将项目迁移到 AGP 9.2.1、Gradle 9.4.1、API 37 与内置 Kotlin，集中管理依赖版本并加入 Dependabot 和云端 Lint 检查；本地 Gradle 配置验证通过，等待云端完整 APK 构建。
+- 第 4 次修改 | 2026-07-29 13:03（北京时间） | 根据 Google SDK 仓库中的实际预览包标识，将云端 API 37 安装项调整为 android-37.0 与 Build Tools 37.0.0，继续验证完整构建。
