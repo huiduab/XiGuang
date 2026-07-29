@@ -3,6 +3,7 @@ package app.xiguang.today
 import android.app.Application
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,7 +52,7 @@ fun TodayRoute(onOpenCollection: (Long) -> Unit, viewModel: TodayViewModel = vie
     }
 }
 
-@Composable private fun TodaySection(title: String, items: List<SavedCollection>, onOpen: (Long) -> Unit) {
+@Composable private fun ColumnScope.TodaySection(title: String, items: List<SavedCollection>, onOpen: (Long) -> Unit) {
     Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
     if (items.isEmpty()) Text(stringResource(R.string.today_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
     else LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f, fill = false)) { items(items, key = SavedCollection::id) { item ->

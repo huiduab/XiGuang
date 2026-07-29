@@ -77,8 +77,9 @@ private fun CollectionReaderScreen(
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-        if (url.isWebUrl()) {
-            WebContent(url)
+        val webUrl = url?.takeIf { it.isWebUrl() }
+        if (webUrl != null) {
+            WebContent(webUrl)
         } else {
             Text(
                 text = stringResource(R.string.reader_invalid_url),

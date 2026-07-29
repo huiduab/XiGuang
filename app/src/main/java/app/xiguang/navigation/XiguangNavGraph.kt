@@ -128,7 +128,11 @@ private fun XiguangAppContent() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(AppDestination.TODAY) {
-                TodayRoute { collectionId -> navController.navigate(AppDestination.collectionDetail(collectionId)) }
+                TodayRoute(
+                    onOpenCollection = { collectionId ->
+                        navController.navigate(AppDestination.collectionDetail(collectionId))
+                    },
+                )
             }
             composable(AppDestination.PROJECTS) {
                 ProjectsRoute()
