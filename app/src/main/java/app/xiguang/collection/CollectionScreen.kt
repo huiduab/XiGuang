@@ -2,15 +2,12 @@ package app.xiguang.collection
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -20,23 +17,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.FolderOpen
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Subscriptions
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -48,11 +42,19 @@ import app.xiguang.ui.theme.Plum
 import app.xiguang.ui.theme.Sage
 
 @Composable
-fun CollectionRoute(viewModel: CollectionViewModel = viewModel()) {
+fun CollectionRoute(
+    onSearch: () -> Unit,
+    onOpenGroup: (CollectionGroup) -> Unit,
+    onManageFolders: () -> Unit,
+    viewModel: CollectionViewModel = viewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     CollectionScreen(
         state = state,
         onToggleMode = viewModel::toggleMode,
+        onSearch = onSearch,
+        onOpenGroup = onOpenGroup,
+        onManageFolders = onManageFolders,
     )
 }
 
@@ -60,6 +62,9 @@ fun CollectionRoute(viewModel: CollectionViewModel = viewModel()) {
 private fun CollectionScreen(
     state: CollectionUiState,
     onToggleMode: () -> Unit,
+    onSearch: () -> Unit,
+    onOpenGroup: (CollectionGroup) -> Unit,
+    onManageFolders: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -70,6 +75,8 @@ private fun CollectionScreen(
         CollectionHeader(
             state = state,
             onToggleMode = onToggleMode,
+            onSearch = onSearch,
+            onManageFolders = onManageFolders,
         )
 
         if (state.isEmpty) {
@@ -77,12 +84,13 @@ private fun CollectionScreen(
         } else {
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(state.groups, key = CollectionGroup::key) { group ->
-                    CollectionGroupRow(group)
+                    CollectionGroupRow(
+                        group = group,
+                        onClick = { onOpenGroup(group) },
+                    )
                 }
             }
         }
-
-        XiguangBottomBar()
     }
 }
 
@@ -90,6 +98,8 @@ private fun CollectionScreen(
 private fun CollectionHeader(
     state: CollectionUiState,
     onToggleMode: () -> Unit,
+    onSearch: () -> Unit,
+    onManageFolders: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -106,11 +116,14 @@ private fun CollectionHeader(
                 color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = {}) {
+            IconButton(onClick = onSearch) {
                 Icon(
                     imageVector = Icons.Outlined.Search,
                     contentDescription = "搜索收藏",
                 )
+            }
+            TextButton(onClick = onManageFolders) {
+                Text(stringResource(app.xiguang.R.string.folder_manage_action))
             }
             IconButton(onClick = onToggleMode) {
                 Icon(
@@ -150,12 +163,15 @@ private fun CollectionHeader(
 }
 
 @Composable
-private fun CollectionGroupRow(group: CollectionGroup) {
+private fun CollectionGroupRow(
+    group: CollectionGroup,
+    onClick: () -> Unit,
+) {
     val tint = platformColor(group.platform)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable(onClick = onClick)
             .padding(
                 start = if (group.depth == 0) 28.dp else 64.dp,
                 end = 24.dp,
@@ -228,53 +244,6 @@ private fun EmptyCollection(modifier: Modifier = Modifier) {
                 modifier = Modifier.padding(top = 10.dp),
             )
         }
-    }
-}
-
-@Composable
-private fun XiguangBottomBar() {
-    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
-            .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        horizontalArrangement = Arrangement.SpaceAround,
-    ) {
-        BottomDestination("今日", Icons.Outlined.Home, selected = false)
-        BottomDestination("项目", Icons.Outlined.Subscriptions, selected = false)
-        BottomDestination("收藏", Icons.Outlined.BookmarkBorder, selected = true)
-        BottomDestination("设置", Icons.Outlined.Settings, selected = false)
-    }
-}
-
-@Composable
-private fun BottomDestination(
-    label: String,
-    icon: ImageVector,
-    selected: Boolean,
-) {
-    val color = if (selected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .width(64.dp)
-            .clickable { }
-            .padding(vertical = 4.dp),
-    ) {
-        Icon(icon, contentDescription = label, tint = color)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = color,
-            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
-        )
     }
 }
 

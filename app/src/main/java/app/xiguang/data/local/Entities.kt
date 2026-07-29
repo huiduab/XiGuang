@@ -72,6 +72,48 @@ data class CollectionEntity(
     @ColumnInfo(name = "shared_from_package")
     val sharedFromPackage: String? = null,
     val note: String? = null,
+    @ColumnInfo(name = "is_read")
+    val isRead: Boolean = false,
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long,
+    @ColumnInfo(name = "updated_at")
+    val updatedAt: Long,
+)
+
+@Entity(
+    tableName = "projects",
+    indices = [Index(value = ["name"], unique = true)],
+)
+data class ProjectEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val name: String,
+    val description: String? = null,
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long,
+    @ColumnInfo(name = "updated_at")
+    val updatedAt: Long,
+)
+
+@Entity(
+    tableName = "sources",
+    foreignKeys = [
+        ForeignKey(
+            entity = ProjectEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["project_id"],
+            onDelete = ForeignKey.SET_NULL,
+        ),
+    ],
+    indices = [Index("project_id")],
+)
+data class SourceEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    @ColumnInfo(name = "project_id")
+    val projectId: Long? = null,
+    val name: String,
+    val url: String? = null,
     @ColumnInfo(name = "created_at")
     val createdAt: Long,
     @ColumnInfo(name = "updated_at")
