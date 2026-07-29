@@ -58,18 +58,19 @@ object UrlNormalizer {
 
     private fun normalizeQuery(rawQuery: String?): String? {
         if (rawQuery.isNullOrBlank()) return null
-        val charset = StandardCharsets.UTF_8
+        val charsetName = StandardCharsets.UTF_8.name()
         return rawQuery
             .split('&')
             .mapNotNull { part ->
                 val pieces = part.split('=', limit = 2)
-                val key = URLDecoder.decode(pieces[0], charset)
+                val key = URLDecoder.decode(pieces[0], charsetName)
                 val lowerKey = key.lowercase(Locale.ROOT)
                 if (lowerKey.startsWith("utm_") || lowerKey in ignoredQueryKeys) {
                     null
                 } else {
-                    val value = pieces.getOrNull(1)?.let { URLDecoder.decode(it, charset) }
-                    URLEncoder.encode(key, charset) to value?.let { URLEncoder.encode(it, charset) }
+                    val value = pieces.getOrNull(1)?.let { URLDecoder.decode(it, charsetName) }
+                    URLEncoder.encode(key, charsetName) to
+                        value?.let { URLEncoder.encode(it, charsetName) }
                 }
             }
             .sortedBy { it.first }
